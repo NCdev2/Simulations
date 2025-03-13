@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newton's First Law - Inertia with Walls</title>
+
+    <!-- Import Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background-color: #f0f8ff; }
+
+        /* UI Controls */
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Stopwatch Display */
+        #stopwatch {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- UI Controls for Velocity & Friction -->
+    <div id="controls">
+        <label>Velocity: <span id="velocityValue">0.05</span></label>
+        <input type="range" id="velocitySlider" min="0" max="0.2" step="0.01" value="0.05">
+        <br>
+        <label>Friction: <span id="frictionValue">0.00</span></label>
+        <input type="range" id="frictionSlider" min="0" max="0.02" step="0.001" value="0.00">
+    </div>
+
+    <!-- Stopwatch Display -->
+    <div id="stopwatch">Time: <span id="timeElapsed">0</span> s</div>
+
+    <script>
+        // 🌟 Step 1: Create Scene, Camera, and Renderer 🌟
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 🌟 Step 2: Create Ball (Fixed Size) 🌟
+        const ballGeometry = new THREE.SphereGeometry(0.5, 32, 32); // Constant ball size
+        const ballMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.5, metalness: 0.3 });
+        const ball = new THREE.Mesh(ballGeometry, ballMaterial);
+        scene.add(ball);
+
+        // 🌟 Step 3: Add Light Background and Lighting 🌟
+        scene.background = new THREE.Color(0xfafafa); // Light-colored background
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 5, 5);
+        scene.add(light);
+
+        // 🌟 Step 4: Create Walls 🌟
+        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.8 });
+        const wallThickness = 0.2;
+
+        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, 2, 10), wallMaterial);
+        leftWall.position.x = -4.5;
+        scene.add(leftWall);
+
+        const rightWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, 2, 10), wallMaterial);
+        rightWall.position.x = 4.5;
+        scene.add(rightWall);
+
+        // 🌟 Step 5: Position Camera 🌟
+        camera.position.z = 5;
+
+        // 🌟 Step 6: Set Initial Motion Variables 🌟
+        let velocity = 0.05; // Initial speed
+        let friction = 0.00; // No friction at start
+        let timeElapsed = 0; // Stopwatch time
+        let direction = 1; // 1 = Right, -1 = Left
+
+        // UI Controls for Velocity & Friction
+        document.getElementById("velocitySlider").addEventListener("input", (event) => {
+            velocity = parseFloat(event.target.value);
+            document.getElementById("velocityValue").innerText = velocity.toFixed(2);
+        });
+
+        document.getElementById("frictionSlider").addEventListener("input", (event) => {
+            friction = parseFloat(event.target.value);
+            document.getElementById("frictionValue").innerText = friction.toFixed(3);
+        });
+
+        // 🌟 Step 7: Start Stopwatch 🌟
+        setInterval(() => {
+            timeElapsed += 1;
+            document.getElementById("timeElapsed").innerText = timeElapsed;
+        }, 1000);
+
+        // 🌟 Step 8: Animate Ball with Rebounding Effect 🌟
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Ball moves right or left based on direction
+            if (velocity > 0) {
+                ball.position.x += velocity * direction;
+                velocity -= friction; // Slow down due to friction
+
+                if (velocity < 0) velocity = 0; // Stop when velocity is too low
+            }
+
+            // 🌟 Rebounding Effect: Ball bounces back when hitting the walls 🌟
+            if (ball.position.x >= 4 || ball.position.x <= -4) {
+                direction *= -1; // Reverse direction
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // 🌟 Step 9: Start the Animation Loop 🌟
+        animate();
+    </script>
+
+</body>
+</html>
